@@ -25,11 +25,37 @@ class RotatingText {
         this.tags = tags
         this.index = 0
     }
-    draw() {
+    draw(context,w,h) {
         context.fillStyle = 'white'
     }
-    move() {
+    move(h) {
         this.index ++
         this.index %= this.index.length
+    }
+}
+class Screen {
+    constructor(tags) {
+        this.tags = tags
+        this.index = 0
+        this.y = 0
+    }
+    draw(context,w,h) {
+        context.fillText(this.tags[index],w/2-measureText(this.tags[index]).width/2,this.y+h/2)
+        if(index+1 < this.tags.length) {
+            context.fillText(this.tags[index],w/2-measureText(this.tags[index+1]).width/2,this.y+3*h/2)
+        }
+        else {
+            context.fillText(this.tags[index],w/2-measureText(this.tags[0]).width/2,this.y+3*h/2)
+        }
+    }
+    move(h) {
+        this.y - = h/5
+        if(this.y >= h) {
+            this.index ++
+            if(this.index == this.tags.length) {
+                this.index = 0
+            }
+            this.y = 0
+        }
     }
 }
