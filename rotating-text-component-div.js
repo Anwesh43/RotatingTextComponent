@@ -2,13 +2,16 @@ class RotatingTextComponent extends HTMLElement{
     constructor() {
         super()
         this.color = this.getAttribute("color")
-        this.text = this.getAttribute("text")
-        this.tags = this.getAttribute("tags")
+        this.text = this.getAttribute("text")+" "
+        this.tags = this.getAttribute("tags").split(",")
         this.img = document.createElement('img')
-        this.rotatingText = new RotatingText(tags,()=>{
+        this.rotatingText = new RotatingText(this.tags,()=>{
             this.isMoving = false
+            clearInterval(this.interval)
         })
         this.isMoving = false
+        const shadow = this.attachShadow({mode:'open'})
+        shadow.appendChild(this.img)
     }
     draw() {
         const canvas = document.createElement('canvas')
@@ -20,23 +23,35 @@ class RotatingTextComponent extends HTMLElement{
         context.fillRect(0,0,canvas.width,canvas.height)
         context.fillStyle = 'white'
         context.font = context.font.replace(/\d{2}/,`${window.innerWidth/15}`)
+
+        const longestTag = this.tags.reduce((a,b)=>{return context.measureText(a).width > context.measureText(b).width?a:b })
         const tw = context.measureText(this.text).width
-        context.fillText(this.text,canvas.width/2-tw/2,canvas.height/2)
-        const longestTag = this.tage.reduce((word,a)=>{console.log(word);return a.length > word.length?a:word })
-        const tagW = (context.measureText(longestTag).width) * 1.5
+        console.log(longestTag)
+        const tagW = (context.measureText(longestTag).width)*1.3
         const tagH = window.innerWidth/12
-        const tagX = canvas.width/2 + tw/2
+        const tagX = canvas.width/2 -tagW/2+tw/2
+        context.fillText(this.text,canvas.width/2-(tw+tagW)/2,canvas.height/2)
         context.save()
         context.translate(tagX,canvas.height/2)
         this.rotatingText.draw(context,tagW,tagH)
-        if(this.isMoving == false) {
+        if(this.isMoving == true) {
             this.rotatingText.move(tagH)
         }
         context.restore()
         this.img.src = canvas.toDataURL()
+
+    }
+    connectedCallback() {
+        this.draw()
         this.img.onmousedown = () => {
             if(this.isMoving == false) {
+                console.log("clicked")
                 this.isMoving = true
+                console.log(this.isMoving)
+                this.interval = setInterval(() => {
+                    this.draw()
+                },100)
+
             }
         }
     }
@@ -49,10 +64,15 @@ class RotatingText {
     }
     draw(context,w,h) {
         context.fillStyle = 'white'
+        context.save()
+        context.beginPath()
+        context.rect(0,-h/2-h/10,w,9*h/10)
+        context.clip()
         this.screen.draw(context,w,h)
+        context.restore()
     }
     move(h) {
-        this.screen.move()
+        this.screen.move(h)
     }
 }
 class Screen {
@@ -63,24 +83,28 @@ class Screen {
         this.y = 0
     }
     draw(context,w,h) {
-        context.fillText(this.tags[index],w/2-measureText(this.tags[index]).width/2,this.y+h/2)
+        const index = this.index
+        context.fillText(this.tags[index],0,this.y)
         if(index+1 < this.tags.length) {
-            context.fillText(this.tags[index],w/2-measureText(this.tags[index+1]).width/2,this.y+3*h/2)
+            context.fillText(this.tags[index+1],0,this.y+h)
         }
         else {
-            context.fillText(this.tags[index],w/2-measureText(this.tags[0]).width/2,this.y+3*h/2)
+            context.fillText(this.tags[0],0,this.y+h)
         }
     }
     move(h) {
-        this.y - = h/5
-        if(this.y >= h) {
+        console.log(h)
+        console.log(this.y)
+        this.y -= h/5
+        if(this.y <= -h) {
             this.index ++
             if(this.index == this.tags.length) {
                 this.index = 0
-                this.cb()
+
             }
             this.y = 0
+            this.cb()
         }
     }
 }
-customElements.defineElement('rotating-text-div',RotatingTextComponent)
+customElements.define('rotating-text-div',RotatingTextComponent)
