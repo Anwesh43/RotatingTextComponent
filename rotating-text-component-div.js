@@ -5,6 +5,8 @@ class RotatingTextComponent extends HTMLElement{
         this.text = this.getAttribute("text")
         this.tags = this.getAttribute("tags")
         this.img = document.createElement('img')
+        this.rotatingText = new RotatingText(tags)
+        this.isMoving = false
     }
     draw() {
         const canvas = document.createElement('canvas')
@@ -17,20 +19,32 @@ class RotatingTextComponent extends HTMLElement{
         context.fillStyle = 'white'
         context.font = context.font.replace(/\d{2}/,`${window.innerWidth/15}`)
         const tw = context.measureText(this.text).width
-        context.fillText(this.text,canvas.width/2-tw,canvas.height/2)
+        context.fillText(this.text,canvas.width/2-tw/2,canvas.height/2)
+        const longestTag = this.tage.reduce((word,a)=>{console.log(word);return a.length > word.length?a:word })
+        const tagW = (context.measureText(longestTag).width) * 1.5
+        const tagH = window.innerWidth/12
+        const tagX = canvas.width/2 + tw/2
+        context.save()
+        context.translate(tagX,canvas.height/2)
+        this.rotatingText.draw(context,tagW,tagH)
+        if(this.isMoving == false) {
+            this.rotatingText.move(tagH)
+        }
+        context.restore()
     }
 }
 class RotatingText {
     constructor(tags) {
         this.tags = tags
         this.index = 0
+        this.screen = new Screen(tags)
     }
     draw(context,w,h) {
         context.fillStyle = 'white'
+        this.screen.draw(context,w,h)
     }
     move(h) {
-        this.index ++
-        this.index %= this.index.length
+        this.screen.move()
     }
 }
 class Screen {
@@ -59,3 +73,4 @@ class Screen {
         }
     }
 }
+customElements.defineElement('rotating-text-div',RotatingTextComponent)
