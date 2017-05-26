@@ -20,3 +20,16 @@ class RotatingTextComponent extends HTMLElement{
         context.fillText(this.text,canvas.width/2-tw,canvas.height/2)
     }
 }
+class RotatingText {
+    constructor(tags) {
+        this.tags = tags
+        this.index = 0
+    }
+    draw() {
+        context.fillStyle = 'white'
+    }
+    move() {
+        this.index ++
+        this.index %= this.index.length
+    }
+}
