@@ -5,7 +5,9 @@ class RotatingTextComponent extends HTMLElement{
         this.text = this.getAttribute("text")
         this.tags = this.getAttribute("tags")
         this.img = document.createElement('img')
-        this.rotatingText = new RotatingText(tags)
+        this.rotatingText = new RotatingText(tags,()=>{
+            this.isMoving = false
+        })
         this.isMoving = false
     }
     draw() {
@@ -31,13 +33,19 @@ class RotatingTextComponent extends HTMLElement{
             this.rotatingText.move(tagH)
         }
         context.restore()
+        this.img.src = canvas.toDataURL()
+        this.img.onmousedown = () => {
+            if(this.isMoving == false) {
+                this.isMoving = true
+            }
+        }
     }
 }
 class RotatingText {
-    constructor(tags) {
+    constructor(tags,cb) {
         this.tags = tags
         this.index = 0
-        this.screen = new Screen(tags)
+        this.screen = new Screen(tags,cb)
     }
     draw(context,w,h) {
         context.fillStyle = 'white'
@@ -48,8 +56,9 @@ class RotatingText {
     }
 }
 class Screen {
-    constructor(tags) {
+    constructor(tags,cb) {
         this.tags = tags
+        this.cb = cb
         this.index = 0
         this.y = 0
     }
@@ -68,6 +77,7 @@ class Screen {
             this.index ++
             if(this.index == this.tags.length) {
                 this.index = 0
+                this.cb()
             }
             this.y = 0
         }
